@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>天使タイプ診断</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Hiragino Sans', 'Yu Gothic UI', 'Meiryo UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .title {
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .question-container {
+            margin-bottom: 30px;
+            text-align: left;
+        }
+
+        .question {
+            font-size: 1.2em;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .option {
+            background: rgba(102, 126, 234, 0.1);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1em;
+        }
+
+        .option:hover {
+            background: rgba(102, 126, 234, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .option.selected {
+            background: rgba(102, 126, 234, 0.3);
+            border-color: #667eea;
+            color: #333;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(102, 126, 234, 0.2);
+            border-radius: 4px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            margin: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .result-container {
+            text-align: center;
+            animation: fadeIn 0.8s ease-in;
+        }
+
+        .angel-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+        }
+
+        .angel-name {
+            font-size: 2.2em;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .angel-description {
+            font-size: 1.1em;
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .angel-traits {
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .trait-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .trait-list {
+            color: #555;
+            line-height: 1.5;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="quiz-start">
+            <h1 class="title">✨ 天使タイプ診断 ✨</h1>
+            <p class="subtitle">あなたはどんな天使？10の質問でわかる天使診断</p>
+            <button class="btn" onclick="startQuiz()">診断を始める</button>
+        </div>
+
+        <div id="quiz-container" class="hidden">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress"></div>
+            </div>
+            <div class="question-container">
+                <div class="question" id="question-text"></div>
+                <div class="options" id="options-container"></div>
+            </div>
+            <button class="btn" id="next-btn" onclick="nextQuestion()" disabled>次へ</button>
+        </div>
+
+        <div id="result-container" class="hidden">
+            <div class="result-container">
+                <div class="angel-icon" id="angel-icon"></div>
+                <h2 class="angel-name" id="angel-name"></h2>
+                <div class="angel-description" id="angel-description"></div>
+                <div class="angel-traits">
+                    <div class="trait-title">あなたの天使の特徴：</div>
+                    <div class="trait-list" id="angel-traits"></div>
+                </div>
+                <button class="btn" onclick="resetQuiz()">もう一度診断する</button>
+                <button class="btn" onclick="shareResult()">結果をシェア</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                question: "友達が悩んでいるとき、あなたはどうしますか？",
+                options: [
+                    { text: "すぐに解決策を考えて提案する", type: "guardian" },
+                    { text: "話を聞いて共感してあげる", type: "healing" },
+                    { text: "楽しい話題で気分転換させる", type: "joy" },
+                    { text: "一緒に冷静に状況を整理する", type: "wisdom" }
+                ]
+            },
+            {
+                question: "理想の休日の過ごし方は？",
+                options: [
+                    { text: "家族や友人と一緒に過ごす", type: "guardian" },
+                    { text: "自然の中でリラックスする", type: "healing" },
+                    { text: "新しいことに挑戦する", type: "joy" },
+                    { text: "読書や勉強で知識を深める", type: "wisdom" }
+                ]
+            },
+            {
+                question: "あなたが大切にしている価値観は？",
+                options: [
+                    { text: "責任感と信頼", type: "guardian" },
+                    { text: "思いやりと優しさ", type: "healing" },
+                    { text: "自由と創造性", type: "joy" },
+                    { text: "真実と知識", type: "wisdom" }
+                ]
+            },
+            {
+                question: "チームで作業するとき、あなたの役割は？",
+                options: [
+                    { text: "リーダーとしてみんなをまとめる", type: "guardian" },
+                    { text: "メンバーのサポートをする", type: "healing" },
+                    { text: "アイデアを出して盛り上げる", type: "joy" },
+                    { text: "計画を立てて効率化を図る", type: "wisdom" }
+                ]
+            },
+            {
+                question: "困難に直面したとき、あなたはどう対処しますか？",
+                options: [
+                    { text: "責任を持って最後まで取り組む", type: "guardian" },
+                    { text: "周囲の支えを大切にする", type: "healing" },
+                    { text: "ポジティブに考えて乗り越える", type: "joy" },
+                    { text: "冷静に分析して解決策を見つける", type: "wisdom" }
+                ]
+            },
+            {
+                question: "好きな色は？",
+                options: [
+                    { text: "青や緑など落ち着いた色", type: "guardian" },
+                    { text: "ピンクや白など優しい色", type: "healing" },
+                    { text: "オレンジや黄色など明るい色", type: "joy" },
+                    { text: "紫や金など神秘的な色", type: "wisdom" }
+                ]
+            },
+            {
+                question: "人からどんな存在だと言われることが多いですか？",
+                options: [
+                    { text: "頼りになる人", type: "guardian" },
+                    { text: "優しくて癒される人", type: "healing" },
+                    { text: "明るくて楽しい人", type: "joy" },
+                    { text: "賢くて物知りな人", type: "wisdom" }
+                ]
+            },
+            {
+                question: "好きな時間帯は？",
+                options: [
+                    { text: "朝（新しい一日の始まり）", type: "guardian" },
+                    { text: "夕方（穏やかな時間）", type: "healing" },
+                    { text: "昼間（活動的な時間）", type: "joy" },
+                    { text: "夜（静かに考える時間）", type: "wisdom" }
+                ]
+            },
+            {
+                question: "もし魔法が使えるなら、何をしたいですか？",
+                options: [
+                    { text: "大切な人を守る", type: "guardian" },
+                    { text: "病気や心の痛みを癒す", type: "healing" },
+                    { text: "みんなを笑顔にする", type: "joy" },
+                    { text: "世界の謎を解明する", type: "wisdom" }
+                ]
+            },
+            {
+                question: "最後に、あなたの人生の目標は？",
+                options: [
+                    { text: "家族や仲間を幸せにすること", type: "guardian" },
+                    { text: "多くの人の心を癒すこと", type: "healing" },
+                    { text: "世界に喜びを広げること", type: "joy" },
+                    { text: "真理を追求し智慧を得ること", type: "wisdom" }
+                ]
+            }
+        ];
+
+        const angelTypes = {
+            guardian: {
+                name: "守護天使",
+                icon: "👼",
+                description: "あなたは守護天使タイプです。責任感が強く、大切な人を守ることに使命を感じています。困っている人を見過ごすことができず、いつも誰かのために行動する優しい心の持ち主です。",
+                traits: "• 強い責任感と使命感\n• 大切な人を守る意識\n• 頼られることが多い\n• 正義感が強い\n• チームのリーダー的存在"
+            },
+            healing: {
+                name: "癒しの天使",
+                icon: "🕊️",
+                description: "あなたは癒しの天使タイプです。人の心の痛みに寄り添い、優しさで包み込む力を持っています。周りの人が自然とあなたの前では心を開き、安らぎを感じることでしょう。",
+                traits: "• 深い共感力と思いやり\n• 人の心を癒す力\n• 聞き上手で相談される\n• 穏やかで優しい性格\n• 平和を愛する心"
+            },
+            joy: {
+                name: "喜びの天使",
+                icon: "😇",
+                description: "あなたは喜びの天使タイプです。明るいエネルギーで周りを照らし、笑顔を届ける力を持っています。あなたがいるだけで場が和み、みんなが楽しい気持ちになります。",
+                traits: "• 明るく前向きな性格\n• 周りを楽しませる力\n• 創造性と自由な発想\n• ポジティブな影響力\n• 困難も笑顔で乗り越える"
+            },
+            wisdom: {
+                name: "智慧の天使",
+                icon: "👑",
+                description: "あなたは智慧の天使タイプです。深い洞察力と豊かな知識で、人々に正しい道を示す力を持っています。冷静な判断力と的確なアドバイスで、多くの人から信頼されています。",
+                traits: "• 深い洞察力と知識\n• 冷静で的確な判断\n• 真理を追求する姿勢\n• 人生の指導者的役割\n• 学び続ける向上心"
+            }
+        };
+
+        let currentQuestion = 0;
+        let answers = { guardian: 0, healing: 0, joy: 0, wisdom: 0 };
+
+        function startQuiz() {
+            document.getElementById('quiz-start').classList.add('hidden');
+            document.getElementById('quiz-container').classList.remove('hidden');
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const question = questions[currentQuestion];
+            document.getElementById('question-text').textContent = `Q${currentQuestion + 1}. ${question.question}`;
+            
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+            
+            question.options.forEach((option, index) => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'option';
+                optionDiv.textContent = option.text;
+                optionDiv.onclick = () => selectOption(index, optionDiv);
+                optionsContainer.appendChild(optionDiv);
+            });
+            
+            updateProgress();
+            document.getElementById('next-btn').disabled = true;
+        }
+
+        function selectOption(index, element) {
+            document.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
+            element.classList.add('selected');
+            
+            const question = questions[currentQuestion];
+            const selectedType = question.options[index].type;
+            answers[selectedType]++;
+            
+            document.getElementById('next-btn').disabled = false;
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            
+            if (currentQuestion < questions.length) {
+                showQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function updateProgress() {
+            const progress = ((currentQuestion) / questions.length) * 100;
+            document.getElementById('progress').style.width = progress + '%';
+        }
+
+        function showResult() {
+            const maxType = Object.keys(answers).reduce((a, b) => answers[a] > answers[b] ? a : b);
+            const angel = angelTypes[maxType];
+            
+            document.getElementById('quiz-container').classList.add('hidden');
+            document.getElementById('result-container').classList.remove('hidden');
+            
+            document.getElementById('angel-icon').textContent = angel.icon;
+            document.getElementById('angel-name').textContent = angel.name;
+            document.getElementById('angel-description').textContent = angel.description;
+            document.getElementById('angel-traits').textContent = angel.traits;
+        }
+
+        function resetQuiz() {
+            currentQuestion = 0;
+            answers = { guardian: 0, healing: 0, joy: 0, wisdom: 0 };
+            
+            document.getElementById('result-container').classList.add('hidden');
+            document.getElementById('quiz-start').classList.remove('hidden');
+        }
+
+        function shareResult() {
+            const angelName = document.getElementById('angel-name').textContent;
+            const shareText = `天使タイプ診断の結果：私は「${angelName}」でした！✨ あなたも診断してみませんか？`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: '天使タイプ診断結果',
+                    text: shareText,
+                    url: window.location.href
+                });
+            } else {
+                navigator.clipboard.writeText(shareText).then(() => {
+                    alert('結果をクリップボードにコピーしました！');
+                });
+            }
+        }
+    </script>
+</body>
+</html>
